@@ -1,29 +1,32 @@
 # 🚗 Reto Renault - Aplicación Full Stack
 
-Una aplicación web full-stack desarrollada con **React** para el frontend, **FastAPI** para el backend, y configurada para despliegue en **Heroku**.
+Una aplicación web full-stack desarrollada con **React** para el frontend y **FastAPI** para el backend.
 
 ## 🚀 Tecnologías Utilizadas
 
-### Backend
+### Backend Scripts
+
 - **FastAPI** - Framework web moderno y rápido para Python
 - **Uvicorn** - Servidor ASGI de alto rendimiento
 - **Pydantic** - Validación de datos usando type hints de Python
 - **Gunicorn** - Servidor WSGI para producción
 
-### Frontend
+### Frontend Deployment
+
 - **React 18** - Biblioteca de JavaScript para interfaces de usuario
 - **Vite** - Herramienta de construcción rápida para desarrollo frontend
 - **Axios** - Cliente HTTP para realizar peticiones a la API
 - **CSS3** - Estilos responsivos y modernos
 
 ### Despliegue
+
 - **Heroku** - Plataforma de despliegue en la nube
 - **Docker** - Contenedorización de aplicaciones
 - **Docker Compose** - Orquestación de contenedores para desarrollo
 
 ## 📁 Estructura del Proyecto
 
-```
+```bash
 Reto_Renault/
 ├── backend/                 # Aplicación FastAPI
 │   ├── app/
@@ -52,6 +55,7 @@ Reto_Renault/
 ## 🛠️ Instalación y Configuración
 
 ### Prerrequisitos
+
 - **Python 3.11+**
 - **Node.js 18+**
 - **npm** o **yarn**
@@ -60,16 +64,19 @@ Reto_Renault/
 ### 🔧 Configuración del Backend
 
 1. Navegar al directorio del backend:
+
 ```bash
 cd backend
 ```
 
 2. Crear un entorno virtual:
+
 ```bash
 python -m venv venv
 ```
 
 3. Activar el entorno virtual:
+
 ```bash
 # Windows
 venv\Scripts\activate
@@ -79,11 +86,13 @@ source venv/bin/activate
 ```
 
 4. Instalar dependencias:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 5. Ejecutar el servidor de desarrollo:
+
 ```bash
 uvicorn app.main:app --reload --port 8000
 ```
@@ -94,21 +103,25 @@ Documentación interactiva: `http://localhost:8000/docs`
 ### ⚛️ Configuración del Frontend
 
 1. Navegar al directorio del frontend:
+
 ```bash
 cd frontend
 ```
 
 2. Instalar dependencias:
+
 ```bash
 npm install
 ```
 
 3. Configurar variables de entorno:
+
 ```bash
 cp .env.example .env
 ```
 
 4. Ejecutar el servidor de desarrollo:
+
 ```bash
 npm run dev
 ```
@@ -124,6 +137,7 @@ docker-compose up --build
 ```
 
 Esto iniciará:
+
 - Backend en `http://localhost:8000`
 - Frontend en `http://localhost:3000`
 
@@ -132,11 +146,13 @@ Esto iniciará:
 ### Backend (FastAPI)
 
 1. Crear una nueva aplicación en Heroku:
+
 ```bash
 heroku create tu-app-backend
 ```
 
 2. Configurar el repositorio y hacer deploy:
+
 ```bash
 cd backend
 git init
@@ -149,16 +165,19 @@ git push heroku main
 ### Frontend (React)
 
 1. Crear una nueva aplicación en Heroku:
+
 ```bash
 heroku create tu-app-frontend
 ```
 
 2. Configurar variables de entorno:
+
 ```bash
 heroku config:set VITE_API_URL=https://tu-app-backend.herokuapp.com -a tu-app-frontend
 ```
 
 3. Hacer deploy:
+
 ```bash
 cd frontend
 git init
@@ -206,6 +225,7 @@ curl -X POST http://localhost:8000/api/items \
 ## 🔧 Scripts Disponibles
 
 ### Backend
+
 ```bash
 # Ejecutar servidor de desarrollo
 uvicorn app.main:app --reload
@@ -215,6 +235,7 @@ gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app
 ```
 
 ### Frontend
+
 ```bash
 # Ejecutar servidor de desarrollo
 npm run dev

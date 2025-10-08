@@ -1,11 +1,15 @@
 # 📡 FORMATO DE DATOS PARA MICROCONTROLADOR
-# ================================================
+
+## ================================================
 
 ## 🔧 ESPECIFICACIONES TÉCNICAS
 
 ### **Protocolo:** HTTP POST JSON
+
 ### **Frecuencia:** 30-60 segundos
+
 ### **Tamaño:** ~100-200 bytes por mensaje
+
 ### **Compresión:** Opcional (gzip)
 
 ## 📨 FORMATO 1: ENVÍO INDIVIDUAL (Recomendado para tiempo real)
@@ -25,6 +29,7 @@
 ```
 
 ### **Campos:**
+
 - `mc_id`: ID del montacarga (entero, requerido)
 - `timestamp`: Timestamp ISO format (string, requerido)
 - `lat`: Latitud GPS (float, -90 a 90, requerido)
@@ -34,6 +39,7 @@
 - `status`: Estado del montacarga (string, opcional, default: "active")
 
 ### **Valores de status:**
+
 - `"active"`: Operando normalmente
 - `"idle"`: Detenido/inactivo
 - `"maintenance"`: En mantenimiento
@@ -56,6 +62,7 @@
 ```
 
 ### **Campos compactos en data[]:**
+
 - `t`: timestamp (ISO string)
 - `lat`: latitud (float)
 - `lng`: longitud (float)
@@ -179,6 +186,7 @@ send_gps_data(
 ## 🛡️ CONSIDERACIONES DE SEGURIDAD
 
 ### **1. Autenticación (recomendada para producción):**
+
 ```json
 {
   "mc_id": 1,
@@ -190,10 +198,12 @@ send_gps_data(
 ```
 
 ### **2. Rate Limiting:**
+
 - Máximo 1 request por segundo por montacarga
 - Máximo 100 requests por hora por montacarga
 
 ### **3. Validación:**
+
 - Coordenadas GPS válidas
 - Timestamps no más antiguos que 24 horas
 - Velocidades realistas (0-50 km/h para montacargas)
@@ -201,17 +211,20 @@ send_gps_data(
 ## 📊 OPTIMIZACIONES PARA MICROCONTROLADOR
 
 ### **1. Reducir consumo de datos:**
+
 ```json
 {"mc":1,"t":"2025-09-07T14:30:45","p":[40.7128,-74.0060],"s":15.5,"b":85}
 ```
 
 ### **2. Compresión gzip:**
+
 ```cpp
 // Comprimir JSON antes de enviar
 // Puede reducir el tamaño 60-80%
 ```
 
 ### **3. Buffer offline:**
+
 ```python
 # Almacenar datos cuando no hay conexión
 offline_buffer = []
@@ -243,6 +256,7 @@ curl -X POST "http://localhost:8000/api/microcontroller/data" \
 ```
 
 ### **Respuesta esperada:**
+
 ```json
 {
   "success": true,
