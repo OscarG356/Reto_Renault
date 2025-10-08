@@ -1,9 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, Field
+from typing import List, Optional
+from datetime import datetime
 import uvicorn
 import os
+import json
 
 # Crear la instancia de FastAPI
 app = FastAPI(
@@ -52,6 +54,31 @@ class Recorrido(BaseModel):
     hora_fin: str
     distancia_km: float
     puntos_recorrido: List[PuntoRecorrido]
+
+# ========== MODELOS PARA MICROCONTROLADOR ==========
+
+class MicrocontrollerData(BaseModel):
+    """Modelo compacto para datos del microcontrolador"""
+    mc_id: int = Field(..., description="ID del montacarga")
+    timestamp: str = Field(..., description="ISO timestamp: YYYY-MM-DDTHH:MM:SS")
+    lat: float = Field(..., ge=-90, le=90, description="Latitud (-90 a 90)")
+    lng: float = Field(..., ge=-180, le=180, description="Longitud (-180 a 180)")
+    speed: Optional[float] = Field(0.0, ge=0, description="Velocidad en km/h")
+    battery: Optional[int] = Field(100, ge=0, le=100, description="Batería 0-100%")
+    status: Optional[str] = Field("active", description="Estado: active|idle|maintenance")
+
+class MicrocontrollerBatch(BaseModel):
+    """Para envío en lotes (más eficiente)"""
+    mc_id: int = Field(..., description="ID del montacarga")
+    data: List[dict] = Field(..., description="Lista de puntos GPS compactos")
+    # Formato data: [{"t":"2025-09-07T14:30:00","lat":40.7128,"lng":-74.0060,"s":15.5,"b":85}]
+
+class MicrocontrollerResponse(BaseModel):
+    """Respuesta del servidor al microcontrolador"""
+    success: bool
+    message: str
+    next_upload_in: int = Field(60, description="Segundos hasta próximo envío")
+    server_time: str
 
 # Datos de ejemplo (en una aplicación real usarías una base de datos)
 items_db = [
@@ -190,6 +217,142 @@ async def get_dashboard_stats():
         "velocidad_promedio": round(velocidad_promedio, 2),
         "montacargas_activos": len([m for m in montacargas_db if m["estado"] == "Activo"]),
         "montacargas_mantenimiento": len([m for m in montacargas_db if m["estado"] == "Mantenimiento"])
+    }
+
+# ========== ENDPOINTS PARA MICROCONTROLADOR ==========
+
+@app.post("/api/microcontroller/data", response_model=MicrocontrollerResponse)
+async def receive_microcontroller_data(data: MicrocontrollerData):
+    """
+    Endpoint optimizado para recibir datos del microcontrolador
+    Formato JSON compacto y respuesta rápida
+    """
+    try:
+        # Validar que el montacarga existe
+        montacarga_exists = any(m["id"] == data.mc_id for m in montacargas_db)
+        if not montacarga_exists:
+            raise HTTPException(status_code=404, detail=f"Montacarga {data.mc_id} no encontrado")
+        
+        # Crear punto de recorrido
+        nuevo_punto = {
+            "lat": data.lat,
+            "lng": data.lng,
+            "timestamp": data.timestamp
+        }
+        
+        # Buscar recorrido activo del día o crear uno nuevo
+        fecha_hoy = data.timestamp.split('T')[0]
+        recorrido_activo = None
+        
+        for rec in recorridos_db:
+            if rec["montacarga_id"] == data.mc_id and rec["fecha"] == fecha_hoy:
+                recorrido_activo = rec
+                break
+        
+        if not recorrido_activo:
+            # Crear nuevo recorrido
+            nuevo_recorrido = {
+                "id": len(recorridos_db) + 1,
+                "montacarga_id": data.mc_id,
+                "fecha": fecha_hoy,
+                "hora_inicio": data.timestamp.split('T')[1][:5],
+                "hora_fin": data.timestamp.split('T')[1][:5],
+                "distancia_km": 0.0,
+                "puntos_recorrido": [nuevo_punto],
+                "tiempo_minutos": 0,
+                "velocidad_actual": data.speed or 0,
+                "bateria": data.battery or 100,
+                "estado": data.status or "active"
+            }
+            recorridos_db.append(nuevo_recorrido)
+        else:
+            # Actualizar recorrido existente
+            recorrido_activo["puntos_recorrido"].append(nuevo_punto)
+            recorrido_activo["hora_fin"] = data.timestamp.split('T')[1][:5]
+            
+            # Calcular distancia aproximada (simplificada)
+            if len(recorrido_activo["puntos_recorrido"]) > 1:
+                puntos = recorrido_activo["puntos_recorrido"]
+                ultimo = puntos[-2]
+                actual = puntos[-1]
+                # Fórmula simplificada de distancia
+                dist_aprox = ((actual["lat"] - ultimo["lat"])**2 + (actual["lng"] - ultimo["lng"])**2)**0.5 * 111
+                recorrido_activo["distancia_km"] += dist_aprox
+        
+        # Actualizar estado del montacarga
+        for montacarga in montacargas_db:
+            if montacarga["id"] == data.mc_id:
+                if data.status == "maintenance":
+                    montacarga["estado"] = "Mantenimiento"
+                else:
+                    montacarga["estado"] = "Activo"
+                break
+        
+        return MicrocontrollerResponse(
+            success=True,
+            message="Datos recibidos correctamente",
+            next_upload_in=30,  # Próximo envío en 30 segundos
+            server_time=datetime.now().isoformat()
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error procesando datos: {str(e)}")
+
+@app.post("/api/microcontroller/batch", response_model=MicrocontrollerResponse)
+async def receive_batch_data(batch: MicrocontrollerBatch):
+    """
+    Endpoint para recibir datos en lote (más eficiente para conexiones intermitentes)
+    Ejemplo de uso cuando el microcontrolador almacena datos offline
+    """
+    try:
+        montacarga_exists = any(m["id"] == batch.mc_id for m in montacargas_db)
+        if not montacarga_exists:
+            raise HTTPException(status_code=404, detail=f"Montacarga {batch.mc_id} no encontrado")
+        
+        puntos_procesados = 0
+        
+        for punto_data in batch.data:
+            # Procesar cada punto del lote
+            punto = MicrocontrollerData(
+                mc_id=batch.mc_id,
+                timestamp=punto_data.get("t"),
+                lat=punto_data.get("lat"),
+                lng=punto_data.get("lng"),
+                speed=punto_data.get("s", 0),
+                battery=punto_data.get("b", 100),
+                status=punto_data.get("st", "active")
+            )
+            
+            # Usar la misma lógica del endpoint individual
+            await receive_microcontroller_data(punto)
+            puntos_procesados += 1
+        
+        return MicrocontrollerResponse(
+            success=True,
+            message=f"Lote procesado: {puntos_procesados} puntos",
+            next_upload_in=120,  # Próximo lote en 2 minutos
+            server_time=datetime.now().isoformat()
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error procesando lote: {str(e)}")
+
+@app.get("/api/microcontroller/config/{mc_id}")
+async def get_microcontroller_config(mc_id: int):
+    """
+    Endpoint para que el microcontrolador obtenga su configuración
+    """
+    montacarga = next((m for m in montacargas_db if m["id"] == mc_id), None)
+    if not montacarga:
+        raise HTTPException(status_code=404, detail="Montacarga no encontrado")
+    
+    return {
+        "mc_id": mc_id,
+        "upload_interval": 30,  # segundos entre envíos
+        "batch_size": 10,       # puntos por lote
+        "compression": True,    # usar compresión
+        "server_time": datetime.now().isoformat(),
+        "montacarga_info": montacarga
     }
 
 if __name__ == "__main__":

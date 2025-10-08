@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './Dashboard.css'
+import './Mapa.css'
+import GoogleMap from './GoogleMap'
 
 // Configurar la URL base de la API
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -246,6 +248,15 @@ function App() {
               <p className="no-data">📭 No hay recorridos disponibles</p>
             )}
           </div>
+        </section>
+
+        {/* Sección del Mapa */}
+        <section className="mapa-section">
+          <h2>🗺️ Visualización de Recorridos en Mapa</h2>
+          <GoogleMap 
+            recorridos={recorridos}
+            montacargaSeleccionado={selectedMontacarga}
+          />
         </section>
       </main>
     </div>
