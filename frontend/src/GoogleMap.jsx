@@ -17,7 +17,7 @@ const GoogleMap = ({ recorridos, montacargaSeleccionado }) => {
     5: '#9C27B0'  // Púrpura
   };
 
-  // Función para esperar a que Google Maps esté disponible
+  // Función para cargar Google Maps dinámicamente
   const loadGoogleMapsScript = () => {
     return new Promise((resolve, reject) => {
       // Verificar si ya está cargado
@@ -26,19 +26,30 @@ const GoogleMap = ({ recorridos, montacargaSeleccionado }) => {
         return;
       }
 
-      // Esperar a que el script se cargue (máximo 10 segundos)
-      let attempts = 0;
-      const maxAttempts = 100;
-      const checkInterval = setInterval(() => {
-        attempts++;
-        if (window.google && window.google.maps) {
-          clearInterval(checkInterval);
-          resolve();
-        } else if (attempts >= maxAttempts) {
-          clearInterval(checkInterval);
-          reject(new Error('Google Maps no pudo cargarse. Verifica tu conexión y API key.'));
-        }
-      }, 100);
+      // Obtener API key desde variables de entorno
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      
+      if (!apiKey || apiKey === 'TU_API_KEY_REAL_AQUI') {
+        reject(new Error('⚠️ API Key de Google Maps no configurada. Configura VITE_GOOGLE_MAPS_API_KEY en el archivo .env.local'));
+        return;
+      }
+
+      // Crear y cargar el script dinámicamente
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry`;
+      script.async = true;
+      script.defer = true;
+      
+      script.onload = () => {
+        console.log('✅ Google Maps API cargada correctamente');
+        resolve();
+      };
+      
+      script.onerror = () => {
+        reject(new Error('❌ Error al cargar Google Maps API. Verifica tu API key y conexión.'));
+      };
+
+      document.head.appendChild(script);
     });
   };
 

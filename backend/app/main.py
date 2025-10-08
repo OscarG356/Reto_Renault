@@ -6,6 +6,7 @@ from datetime import datetime
 import uvicorn
 import os
 import json
+import requests
 
 # Crear la instancia de FastAPI
 app = FastAPI(
@@ -13,6 +14,63 @@ app = FastAPI(
     description="API backend para la aplicación Reto Renault",
     version="1.0.0"
 )
+
+# ========== PROXY SEGURO PARA GOOGLE MAPS (OPCIONAL) ==========
+
+@app.get("/api/maps/script")
+async def get_maps_script():
+    """
+    Endpoint proxy para servir el script de Google Maps sin exponer la API key
+    Alternativa más segura que cargar directamente desde el frontend
+    """
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    
+    if not api_key:
+        raise HTTPException(
+            status_code=500, 
+            detail="Google Maps API key no configurada en el servidor"
+        )
+    
+    script_url = f"https://maps.googleapis.com/maps/api/js?key={api_key}&libraries=geometry"
+    
+    return {
+        "success": True,
+        "script_url": script_url,
+        "message": "Script URL generada dinámicamente",
+        "timestamp": datetime.now().isoformat()
+    }
+
+@app.post("/api/maps/geocode")
+async def proxy_geocoding(address: str):
+    """
+    Proxy para geocoding sin exponer la API key
+    Uso: POST /api/maps/geocode con {"address": "dirección a geocodificar"}
+    """
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    
+    if not api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="Google Maps API key no configurada"
+        )
+    
+    try:
+        url = "https://maps.googleapis.com/maps/api/geocode/json"
+        params = {
+            "address": address,
+            "key": api_key
+        }
+        
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        
+        return response.json()
+        
+    except requests.RequestException as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error en geocoding: {str(e)}"
+        )
 
 # Configurar CORS para permitir peticiones desde el frontend
 app.add_middleware(
