@@ -127,6 +127,144 @@ const GoogleMap = ({ recorridos, montacargaSeleccionado }) => {
     polylinesRef.current = [];
   };
 
+  // Función para crear InfoWindow con estilo mejorado
+  const createInfoWindow = (recorrido, puntos, tipo = 'general', puntoIndex = null) => {
+    let content = '';
+    
+    if (tipo === 'general') {
+      content = `
+        <div style="
+          padding: 15px; 
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          color: #333; 
+          background-color: white;
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          min-width: 250px;
+          position: relative;
+        ">
+          <button onclick="google.maps.event.trigger(this.parentElement.parentElement.parentElement, 'closeclick')" style="
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+          ">×</button>
+          <h3 style="
+            margin: 0 0 12px 0; 
+            color: ${coloresMontacargas[recorrido.montacarga_id] || '#666'}; 
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 2px solid ${coloresMontacargas[recorrido.montacarga_id] || '#666'};
+            padding-bottom: 8px;
+            padding-right: 30px;
+          ">🚚 Montacarga #${recorrido.montacarga_id}</h3>
+          <div style="line-height: 1.6;">
+            <p style="margin: 8px 0; color: #444; font-size: 14px;">
+              <strong style="color: #666;">📅 Fecha:</strong> 
+              <span style="color: #333;">${recorrido.fecha}</span>
+            </p>
+            <p style="margin: 8px 0; color: #444; font-size: 14px;">
+              <strong style="color: #666;">🕐 Horario:</strong> 
+              <span style="color: #333;">${recorrido.hora_inicio} - ${recorrido.hora_fin}</span>
+            </p>
+            <p style="margin: 8px 0; color: #444; font-size: 14px;">
+              <strong style="color: #666;">📏 Distancia:</strong> 
+              <span style="color: #333;">${recorrido.distancia_km} km</span>
+            </p>
+            <p style="margin: 8px 0; color: #444; font-size: 14px;">
+              <strong style="color: #666;">📍 Puntos:</strong> 
+              <span style="color: #333;">${puntos.length} coordenadas</span>
+            </p>
+          </div>
+        </div>
+      `;
+    } else if (tipo === 'punto' && puntoIndex !== null) {
+      const punto = puntos[puntoIndex];
+      content = `
+        <div style="
+          padding: 12px; 
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          color: #333; 
+          background-color: white;
+          border-radius: 6px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          min-width: 200px;
+          position: relative;
+        ">
+          <button onclick="google.maps.event.trigger(this.parentElement.parentElement.parentElement, 'closeclick')" style="
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+          ">×</button>
+          <h4 style="
+            margin: 0 0 10px 0; 
+            color: ${coloresMontacargas[recorrido.montacarga_id] || '#666'}; 
+            font-size: 16px;
+            font-weight: bold;
+            padding-right: 25px;
+          ">📍 Punto ${puntoIndex + 1}</h4>
+          <div style="line-height: 1.5;">
+            <p style="margin: 6px 0; color: #444; font-size: 13px;">
+              <strong style="color: #666;">🚚 Montacarga:</strong> 
+              <span style="color: #333;">#${recorrido.montacarga_id}</span>
+            </p>
+            <p style="margin: 6px 0; color: #444; font-size: 13px;">
+              <strong style="color: #666;">📍 Coordenadas:</strong> 
+              <span style="color: #333;">${punto.lat.toFixed(6)}, ${punto.lng.toFixed(6)}</span>
+            </p>
+            <p style="margin: 6px 0; color: #444; font-size: 13px;">
+              <strong style="color: #666;">⏰ Timestamp:</strong> 
+              <span style="color: #333;">${punto.timestamp}</span>
+            </p>
+          </div>
+        </div>
+      `;
+    }
+    
+    const infoWindow = new window.google.maps.InfoWindow({
+      content: content,
+      maxWidth: 350,
+      pixelOffset: new window.google.maps.Size(0, -5)
+    });
+
+    // Agregar event listener para cerrar el InfoWindow cuando se haga clic en el botón personalizado
+    infoWindow.addListener('domready', () => {
+      const closeButtons = document.querySelectorAll('.gm-style-iw button');
+      closeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          infoWindow.close();
+        });
+      });
+    });
+
+    return infoWindow;
+  };
+
   // Renderizar recorridos en el mapa
   const renderRecorridos = () => {
     if (!map || !window.google) return;
@@ -177,6 +315,36 @@ const GoogleMap = ({ recorridos, montacargaSeleccionado }) => {
 
         markersRef.current.push(inicioMarker, finMarker);
 
+        // Crear marcadores para puntos individuales (más pequeños)
+        puntos.forEach((punto, index) => {
+          // Solo crear marcadores para puntos intermedios (no inicio ni fin)
+          if (index > 0 && index < puntos.length - 1) {
+            const pointMarker = new window.google.maps.Marker({
+              position: { lat: punto.lat, lng: punto.lng },
+              map: map,
+              title: `Punto ${index + 1} - Montacarga ${recorrido.montacarga_id}`,
+              icon: {
+                path: window.google.maps.SymbolPath.CIRCLE,
+                scale: 4,
+                fillColor: color,
+                fillOpacity: 0.8,
+                strokeColor: '#ffffff',
+                strokeWeight: 1
+              },
+              zIndex: 100 + index
+            });
+
+            // InfoWindow específico para este punto
+            const pointInfoWindow = createInfoWindow(recorrido, puntos, 'punto', index);
+            
+            pointMarker.addListener('click', () => {
+              pointInfoWindow.open(map, pointMarker);
+            });
+
+            markersRef.current.push(pointMarker);
+          }
+        });
+
         // Crear polyline para la ruta
         const polyline = new window.google.maps.Polyline({
           path: puntos.map(punto => ({ lat: punto.lat, lng: punto.lng })),
@@ -194,18 +362,8 @@ const GoogleMap = ({ recorridos, montacargaSeleccionado }) => {
           bounds.extend({ lat: punto.lat, lng: punto.lng });
         });
 
-        // Info windows
-        const infoWindow = new window.google.maps.InfoWindow({
-          content: `
-            <div style="padding: 10px; font-family: Arial, sans-serif;">
-              <h3 style="margin: 0 0 10px 0; color: ${color};">🚚 Montacarga #${recorrido.montacarga_id}</h3>
-              <p style="margin: 5px 0;"><strong>📅 Fecha:</strong> ${recorrido.fecha}</p>
-              <p style="margin: 5px 0;"><strong>🕐 Horario:</strong> ${recorrido.hora_inicio} - ${recorrido.hora_fin}</p>
-              <p style="margin: 5px 0;"><strong>📏 Distancia:</strong> ${recorrido.distancia_km} km</p>
-              <p style="margin: 5px 0;"><strong>📍 Puntos:</strong> ${puntos.length} coordenadas</p>
-            </div>
-          `
-        });
+        // Info windows con la nueva función
+        const infoWindow = createInfoWindow(recorrido, puntos, 'general');
 
         inicioMarker.addListener('click', () => {
           infoWindow.open(map, inicioMarker);

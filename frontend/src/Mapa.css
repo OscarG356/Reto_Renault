@@ -8,6 +8,47 @@
   margin-top: 1rem;
 }
 
+/* Asegurar que los controles de Google Maps sean visibles */
+.gm-style .gm-style-iw {
+  color: #333 !important;
+}
+
+.gm-style .gm-style-iw-d {
+  color: #333 !important;
+}
+
+/* Botón de cerrar del InfoWindow */
+.gm-style .gm-style-iw-c .gm-ui-hover-effect {
+  opacity: 1 !important;
+  background-color: #f1f1f1 !important;
+  border-radius: 2px !important;
+}
+
+.gm-style .gm-style-iw-tc::after {
+  background: #fff !important;
+}
+
+/* Asegurar visibilidad del botón de cerrar */
+.gm-style .gm-style-iw .gm-ui-hover-effect {
+  width: 20px !important;
+  height: 20px !important;
+  opacity: 1 !important;
+  background-color: #f5f5f5 !important;
+  border-radius: 3px !important;
+  right: 0 !important;
+  top: 0 !important;
+}
+
+.gm-style .gm-style-iw .gm-ui-hover-effect:hover {
+  background-color: #e0e0e0 !important;
+}
+
+/* Icono X del botón de cerrar */
+.gm-style .gm-style-iw .gm-ui-hover-effect > img {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
 .mapa-placeholder {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;

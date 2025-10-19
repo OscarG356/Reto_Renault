@@ -151,48 +151,75 @@ montacargas_db = [
     {"id": 3, "codigo": "MC-003", "modelo": "Hyundai 25D-7E", "estado": "Activo"}
 ]
 
-# Datos de recorridos
+# Datos de recorridos - Universidad de Antioquia, Medellín
 recorridos_db = [
     {
         "id": 1,
         "montacarga_id": 1,
-        "fecha": "2025-09-07",
+        "fecha": "2025-10-18",
         "hora_inicio": "08:00",
         "hora_fin": "08:45",
-        "distancia_km": 2.5,
+        "distancia_km": 1.2,
+        "tiempo_minutos": 45,
         "puntos_recorrido": [
-            {"lat": 40.7128, "lng": -74.0060, "timestamp": "08:00"},
-            {"lat": 40.7130, "lng": -74.0058, "timestamp": "08:15"},
-            {"lat": 40.7135, "lng": -74.0055, "timestamp": "08:30"},
-            {"lat": 40.7140, "lng": -74.0050, "timestamp": "08:45"}
+            {"lat": 6.268698, "lng": -75.569654, "timestamp": "08:00"},  # Entrada Principal UdeA
+            {"lat": 6.268917, "lng": -75.569257, "timestamp": "08:10"},  # Biblioteca Central
+            {"lat": 6.269853, "lng": -75.569172, "timestamp": "08:20"},  # Bloque 21 - Ingeniería
+            {"lat": 6.270069, "lng": -75.569829, "timestamp": "08:30"},  # Laboratorios Ingeniería
+            {"lat": 6.269117, "lng": -75.569984, "timestamp": "08:45"}   # Bloque 19 - Investigación
         ]
     },
     {
         "id": 2,
         "montacarga_id": 1,
-        "fecha": "2025-09-07",
-        "hora_inicio": "09:00",
+        "fecha": "2025-10-18",
+        "hora_inicio": "09:15",
         "hora_fin": "10:30",
-        "distancia_km": 4.2,
+        "distancia_km": 2.1,
+        "tiempo_minutos": 75,
         "puntos_recorrido": [
-            {"lat": 40.7140, "lng": -74.0050, "timestamp": "09:00"},
-            {"lat": 40.7145, "lng": -74.0045, "timestamp": "09:30"},
-            {"lat": 40.7150, "lng": -74.0040, "timestamp": "10:00"},
-            {"lat": 40.7155, "lng": -74.0035, "timestamp": "10:30"}
+            {"lat": 6.267203, "lng": -75.568764, "timestamp": "09:15"},  # Bloque 19 - Investigación
+            {"lat": 6.267211, "lng": -75.569207, "timestamp": "09:30"},  # Facultad de Medicina
+            {"lat": 6.266970, "lng": -75.569382, "timestamp": "09:45"},  # Hospital Universitario
+            {"lat": 6.266607, "lng": -75.569324, "timestamp": "10:00"},  # Postgrados Medicina
+            {"lat": 6.266575, "lng": -75.568869, "timestamp": "10:15"},  # Centro de Investigaciones
+            {"lat": 6.266895, "lng": -75.568605, "timestamp": "10:30"}   # Extensión Norte
         ]
     },
     {
         "id": 3,
         "montacarga_id": 2,
-        "fecha": "2025-09-07",
+        "fecha": "2025-10-18",
         "hora_inicio": "07:30",
-        "hora_fin": "09:15",
-        "distancia_km": 3.8,
+        "hora_fin": "09:00",
+        "distancia_km": 1.8,
+        "tiempo_minutos": 90,
         "puntos_recorrido": [
-            {"lat": 40.7160, "lng": -74.0030, "timestamp": "07:30"},
-            {"lat": 40.7165, "lng": -74.0025, "timestamp": "08:00"},
-            {"lat": 40.7170, "lng": -74.0020, "timestamp": "08:30"},
-            {"lat": 40.7175, "lng": -74.0015, "timestamp": "09:15"}
+            {"lat": 6.267368, "lng": -75.567105, "timestamp": "07:30"},  # Parqueadero Principal
+            {"lat": 6.267418, "lng": -75.567505, "timestamp": "07:45"},  # Auditorio Principal
+            {"lat": 6.267447, "lng": -75.567944, "timestamp": "08:00"},  # Teatro Universitario
+            {"lat": 6.266723, "lng": -75.568040, "timestamp": "08:15"},  # Museo Universitario
+            {"lat": 6.266616, "lng": -75.567815, "timestamp": "08:30"},  # Jardín Botánico
+            {"lat": 6.266975, "lng": -75.567776, "timestamp": "08:45"},  # Planetario
+            {"lat": 6.267383, "lng": -75.567744, "timestamp": "09:00"}   # Extensión Cultural
+        ]
+    },
+    {
+        "id": 4,
+        "montacarga_id": 3,
+        "fecha": "2025-10-18",
+        "hora_inicio": "08:30",
+        "hora_fin": "10:00",
+        "distancia_km": 1.5,
+        "tiempo_minutos": 90,
+        "puntos_recorrido": [
+            {"lat": 6.267665, "lng": -75.570281, "timestamp": "08:30"},  # Facultad de Ciencias Exactas
+            {"lat": 6.267759, "lng": -75.570687, "timestamp": "08:45"},  # Laboratorios de Física
+            {"lat": 6.267302, "lng": -75.570788, "timestamp": "09:00"},  # Instituto de Matemáticas
+            {"lat": 6.266494, "lng": -75.570905, "timestamp": "09:15"},  # Centro de Cómputo
+            {"lat": 6.265539, "lng": -75.570359, "timestamp": "09:30"},  # Laboratorios de Química
+            {"lat": 6.265390, "lng": -75.569393, "timestamp": "09:45"},  # Bioterio Universidad
+            {"lat": 6.266311, "lng": -75.569347, "timestamp": "10:00"}   # Laboratorios Biotecnología
         ]
     }
 ]
